@@ -1,0 +1,63 @@
+- hosts: aws
+  vars_files:
+  - var.yml 
+  tasks:
+     #- name: Run Command
+     #command: "mkdir /root/eww"
+     #ignore_errors: true
+
+  - name: Install web package
+    package:
+      #name:  "{{web_pack }}"
+      name:  "httpd"
+      state: present
+      #when: ansible_os_family == "RedHat" and  ansible_memory_mb.real.free >= 100
+    register: webin
+    ignore_errors: true 
+
+  - debug:
+      var: webin
+  - debug:
+      var: webin.rc
+
+  - name: Deploy web pages 
+    become: yes
+    become_user: root
+    template:
+      dest: "{{ doc_root }}/index.html"
+      src: "{{ web_page }}"
+    when: webin.rc == 0
+  
+  - name: Config change in my apache web server
+    become: yes
+    become_user: root
+    template:
+      dest: "/etc/httpd/conf.d/my.conf"
+      src: "my.conf.j2" 
+    notify: "Restart web services"
+    when: webin.rc == 0
+
+  - name: Start Services
+    become: yes
+    become_user: root
+    service:
+      name: "{{ web_pack }}"
+      state: started
+    when: webin.rc == 0
+  
+  - name: Testing web server connectivity
+    uri:
+      url: "http://54.226.192.119"
+    register: s
+  - debug:
+      msg: "Test connecting successfull..."
+    when: s.status == 200
+  
+  handlers:
+  - name: Restart web services
+    become: yes
+    become_user: root
+    service:
+      name: "{{ web_pack }}"
+      state: restarted
+    when: webin.rc == 0

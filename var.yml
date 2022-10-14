@@ -1,0 +1,9 @@
+#       FIle also called data/variable/parameter file
+web_pack: "httpd"
+doc_root: "/var/www/html/"
+web_page: "/root/ws/b.html.j2"
+conf_change: "my.conf.j2"
+x: 3421
+y: 2312
+web_port: 2312
+company_name: Linux World
